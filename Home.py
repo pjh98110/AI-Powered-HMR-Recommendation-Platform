@@ -439,13 +439,13 @@ def page1():
     want_to_B2C_Chatbot = st.button("B2C 간편식 추천 챗봇")
     if want_to_B2C_Chatbot:
         st.session_state.type_of_case = "B2C_Chatbot"
-        switch_page("B2C 간편식 추천 챗봇")
+        switch_page("B2C_Chatbot")
         
 def page2():
     want_to_B2B_Chatbot = st.button("B2B 간편식 대시보드 챗봇")
     if want_to_B2B_Chatbot:
         st.session_state.type_of_case = "B2B_Chatbot"
-        switch_page("B2B 간편식 대시보드 챗봇")
+        switch_page("B2B_Chatbot")
 
 # def page3():
 #     want_to_Tableau = st.button("Tableau")
