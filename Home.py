@@ -98,7 +98,7 @@ def load_csv(path):
 # cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
 # indices = pd.Series(X.index, index=X['M3_상품명']).drop_duplicates()
 
-# # NMF 모델 기반 알고리즘 학습
+# # NMF 잠재 요인 협업 필터링링 학습
 # algo_nmf = NMF()
 # algo_nmf.fit(trainset)
 
@@ -375,7 +375,7 @@ st.session_state.selected_allergy = selected_allergy
 
 selected_option = st.selectbox(
     "사용할 추천시스템을 선택하세요.",
-    options=['협업 필터링', '콘텐츠 기반 필터링', '하이브리드 추천 시스템', '도메인 기반 필터링', '모델 기반 알고리즘'],
+    options=['협업 필터링', '콘텐츠 기반 필터링', '하이브리드 추천 시스템', '도메인 기반 필터링', '잠재 요인 협업 필터링'],
     placeholder="추천시스템 하나를 선택하세요.",
     help="선택한 추천시스템에 따라 다른 결과를 제공합니다."
 )
@@ -403,7 +403,7 @@ if st.button("추천받기"):
         recommendations = recommend_random_products()
         st.session_state['recommendations'] = recommendations
 
-    elif selected_option == '모델 기반 알고리즘':
+    elif selected_option == '잠재 요인 협업 필터링':
         recommendations = recommend_random_products()
         st.session_state['recommendations'] = recommendations
     else:
@@ -579,45 +579,45 @@ if st.sidebar.button("데이터 불러오기"):
         else:
             st.write(f"API 요청 오류: {response.status_code}")
 
-elif selected_api == "조리식품 레시피":
-    # API 기본 정보 설정
-    API_KEY = st.secrets["secrets"]["FOOD_API"]
-    SERVICE_ID = 'COOKRCP01'  # 서비스명
-    DATA_TYPE = 'json'  # 요청 파일 타입 (json 또는 xml)
-    START_IDX = '1'  # 요청 시작 위치
-    END_IDX = '10'  # 요청 종료 위치
-    BASE_URL = f'http://openapi.foodsafetykorea.go.kr/api/{API_KEY}/{SERVICE_ID}/{DATA_TYPE}/{START_IDX}/{END_IDX}'
+    elif selected_api == "조리식품 레시피":
+        # API 기본 정보 설정
+        API_KEY = st.secrets["secrets"]["FOOD_API"]
+        SERVICE_ID = 'COOKRCP01'  # 서비스명
+        DATA_TYPE = 'json'  # 요청 파일 타입 (json 또는 xml)
+        START_IDX = '1'  # 요청 시작 위치
+        END_IDX = '10'  # 요청 종료 위치
+        BASE_URL = f'http://openapi.foodsafetykorea.go.kr/api/{API_KEY}/{SERVICE_ID}/{DATA_TYPE}/{START_IDX}/{END_IDX}'
 
-    # API 요청
-    response = requests.get(BASE_URL)
+        # API 요청
+        response = requests.get(BASE_URL)
 
-    # 응답 확인 및 데이터 출력
-    if response.status_code == 200:
-        data = response.json()  # 데이터 파싱
-        
-        # "row" 키의 경로 확인 (실제 응답 데이터 구조에 따라 수정 필요)
-        rows = data.get(SERVICE_ID, {}).get("row", [])
-        
-        # 결과가 있으면 처리
-        if rows:
-            # DataFrame 생성 및 컬럼 매핑
-            df = pd.DataFrame(rows)
+        # 응답 확인 및 데이터 출력
+        if response.status_code == 200:
+            data = response.json()  # 데이터 파싱
             
-            # 컬럼 매핑 및 필요한 컬럼만 표시
-            df = df.rename(columns=recipe_column_mapping)
+            # "row" 키의 경로 확인 (실제 응답 데이터 구조에 따라 수정 필요)
+            rows = data.get(SERVICE_ID, {}).get("row", [])
+            
+            # 결과가 있으면 처리
+            if rows:
+                # DataFrame 생성 및 컬럼 매핑
+                df = pd.DataFrame(rows)
+                
+                # 컬럼 매핑 및 필요한 컬럼만 표시
+                df = df.rename(columns=recipe_column_mapping)
 
-            # 필요한 컬럼만 표시 (실제 필요한 컬럼들로 구성)
-            display_columns = [
-                '일련번호', '메뉴명', '조리방법', '요리종류', '열량', '탄수화물', '단백질', '지방', '나트륨', '재료정보', 
-                '만드는법_01', '만드는법_02', '만드는법_03', '만드는법_04', '만드는법_05', '만드는법_06', '만드는법_07', '이미지경로(소)', '이미지경로(대)', '저감 조리법 TIP'
-            ]
-            df_display = df[display_columns]
+                # 필요한 컬럼만 표시 (실제 필요한 컬럼들로 구성)
+                display_columns = [
+                    '일련번호', '메뉴명', '조리방법', '요리종류', '열량', '탄수화물', '단백질', '지방', '나트륨', '재료정보', 
+                    '만드는법_01', '만드는법_02', '만드는법_03', '만드는법_04', '만드는법_05', '만드는법_06', '만드는법_07', '이미지경로(소)', '이미지경로(대)', '저감 조리법 TIP'
+                ]
+                df_display = df[display_columns]
 
-            # Streamlit에 데이터프레임 출력
-            st.dataframe(df_display)
+                # Streamlit에 데이터프레임 출력
+                st.dataframe(df_display)
 
+            else:
+                st.write("데이터가 없습니다. 응답 데이터 구조를 확인하세요.")
         else:
-            st.write("데이터가 없습니다. 응답 데이터 구조를 확인하세요.")
-    else:
-        st.write(f"API 요청 오류: {response.status_code}")
+            st.write(f"API 요청 오류: {response.status_code}")
 
