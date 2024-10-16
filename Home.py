@@ -585,7 +585,7 @@ if st.sidebar.button("데이터 불러오기"):
         SERVICE_ID = 'COOKRCP01'  # 서비스명
         DATA_TYPE = 'json'  # 요청 파일 타입 (json 또는 xml)
         START_IDX = '1'  # 요청 시작 위치
-        END_IDX = '10'  # 요청 종료 위치
+        END_IDX = '100'  # 요청 종료 위치
         BASE_URL = f'http://openapi.foodsafetykorea.go.kr/api/{API_KEY}/{SERVICE_ID}/{DATA_TYPE}/{START_IDX}/{END_IDX}'
 
         # API 요청
