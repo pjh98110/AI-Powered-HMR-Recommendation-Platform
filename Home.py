@@ -26,21 +26,7 @@ st.set_page_config(
 # Streamlit의 경우 로컬 환경에서 실행할 경우 터미널 --> Streamlit run "파일 경로/파일명.py"로 실행 / 로컬 환경과 스트리밋 웹앱 환경에서 기능의 차이가 일부 있을 수 있음
 # 파일 경로를 잘못 설정할 경우 오류가 발생하고 실행이 불가능하므로 파일 경로 수정 필수
 # 데이터 파일의 경우 배포된 웹앱 깃허브에서 다운로드 가능함
-
-# # 배경 이미지 설정
-# st.markdown(
-#     """
-#     <style>
-#     .stApp {
-#         background-image: url("https://images.unsplash.com/photo-1554034483-04fda0d3507b?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
-#         background-size: cover;
-#         background-repeat: no-repeat;
-#     }
-#     </style>
-#     """,
-#     unsafe_allow_html=True
-# )
-
+# 비공개 데이터 때문에 로컬에서는 정상 작동하지만, 배포된 코드에는 기능 제한과 추천시스템 구조만 보여줌.
 
 
 # 배경 색상 설정
@@ -48,7 +34,7 @@ st.markdown(
     """
     <style>
     .stApp {
-        background-color: rgba(217, 229, 255, 0.2);  /* 연한 하늘색 배경 */
+        background-color: #FFFAF1; 
     }
     </style>
     """,
@@ -139,6 +125,8 @@ if 'selected_taste' not in st.session_state:
 if 'selected_allergy' not in st.session_state:
     st.session_state.selected_allergy = "알레르기 없음"
 
+if 'selected_time' not in st.session_state:
+    st.session_state.selected_time = "점심"
 
 
 
@@ -333,7 +321,7 @@ def recommend_random_products(num_recommendations=5):
 colored_header(
     label= '생성형 AI 기반 간편식(HMR) 추천 플랫폼',
     description=None,
-    color_name="orange-70",
+    color_name="blue-70",
 )
 
 
@@ -349,13 +337,13 @@ st.sidebar.markdown(f"""
 
 # 사이드바에서 사용자 정보 입력
 selected_gender = st.sidebar.selectbox(
-    "(1) 당신의 성별을 선택하세요:",
+    "(1) 당신의 성별을 선택하세요.",
     ["남성", "여성"]
 )
 st.session_state.selected_gender = selected_gender
 
 selected_age = st.sidebar.selectbox(
-    "(2) 당신의 연령대를 선택하세요:",
+    "(2) 당신의 연령대를 선택하세요.",
     ["25~29세", "30~39세", "40~49세", "50~59세", "60~69세"]
 )
 st.session_state.selected_age = selected_age
@@ -372,59 +360,99 @@ selected_allergy = st.sidebar.text_input(
 )
 st.session_state.selected_allergy = selected_allergy
 
+selected_time = st.sidebar.selectbox(
+    "(5) 간편식을 먹는 시간대를 알려주세요.",
+    ["아침", "점심", "저녁", "야식"]
+)
+st.session_state.selected_time = selected_time
+
+
+definitions = {
+    '사용자 협업 필터링': '사용자 기반 협업 필터링: 유저 간의 유사도가 높을 수록 높은 가중치를 부여하는 방식으로, 특정 유저가 아직 구매하지 않았으나 동질 그룹의 다른 유저가 선호하는 아이템을 추천',
+    '콘텐츠 기반 필터링': '콘텐츠 기반 필터링: 아이템의 특성과 사용자의 선호도를 분석하여 비슷한 아이템 추천하는 방식',
+    '하이브리드 추천 시스템': '하이브리드 추천시스템(협업 필터링+콘텐츠 기반 필터링): 컨텐츠 기반 추천시스템과 협업 필터링을 결합한 모델. 넷플릭스는 협업 필터링을 사용해 유사한 사용자 간의 시청/검색 기록을 비교하고, 콘텐츠 기반 필터링을 사용해 사용자가 높게 평가한 영화의 특징을 공유하는 영화를 제공',
+    '도메인 기반 필터링': '도메인 기반 필터링: 추천하고자 하는 분야의 도메인 지식을 활용해 추천하는 방식',
+    '잠재 요인 협업 필터링': '잠재 요인 협업 필터링: 사용자와 아이템 간의 평점 행렬 속에 숨어 있는 잠재 요인 행렬을 추출하여 내적 곱을 통해 사용자가 평가하지 않은 항목들에 대한 평점까지 예측하여 추천하는 방법',
+    '앙상블 추천시스템': '앙상블 추천시스템: 여러 개의 추천 알고리즘을 결합하여 더 정확하고 신뢰할 수 있는 추천을 제공하는 방법. Hard Voting을 사용하여 각 모델의 추천 결과를 취합하고, 가장 많이 추천된 아이템을 선택합니다.'
+}
+
+image_names = {
+    '사용자 협업 필터링': 'User',
+    '콘텐츠 기반 필터링': 'Content',
+    '하이브리드 추천 시스템': 'Hybrid',
+    '도메인 기반 필터링': 'Domain', 
+    '잠재 요인 협업 필터링': 'Factor',
+    '앙상블 추천시스템': 'Voting'
+}
+
+# Streamlit App
+options = ['사용자 협업 필터링', '콘텐츠 기반 필터링', '하이브리드 추천 시스템', '도메인 기반 필터링', '잠재 요인 협업 필터링', '앙상블 추천시스템']
 
 selected_option = st.selectbox(
     "사용할 추천시스템을 선택하세요.",
-    options=['협업 필터링', '콘텐츠 기반 필터링', '하이브리드 추천 시스템', '도메인 기반 필터링', '잠재 요인 협업 필터링'],
+    options=options, 
     placeholder="추천시스템 하나를 선택하세요.",
     help="선택한 추천시스템에 따라 다른 결과를 제공합니다."
 )
 
 st.session_state.selected_option = selected_option
 
-# 추천 버튼 클릭 시 동작
-if st.button("추천받기"):
-    st.markdown(""" **생성형 AI 기반 추가 정보를 원하시면 아래 :blue[챗봇]을 클릭해주세요.** """)
-    
-    # 추천 시스템에 따라 추천 처리
-    if selected_option == '도메인 기반 필터링':
-        recommendations = recommend_random_products()
-        st.session_state['recommendations'] = recommendations
+# '앙상블 추천시스템' 선택 시 멀티 선택 박스 표시 및 최소 선택 조건 설정
+if selected_option == '앙상블 추천시스템':
+    ensemble_options = [option for option in options if option != '앙상블 추천시스템']
+    selected_models = st.multiselect(
+        "앙상블에 포함할 추천시스템을 선택하세요 (최소 2개 이상)",
+        options=ensemble_options,
+        help="사용할 추천시스템을 여러 개 선택할 수 있습니다. 최소 2개를 선택해야 합니다."
+    )
 
-    elif selected_option == '협업 필터링':
-        recommendations = recommend_random_products()
-        st.session_state['recommendations'] = recommendations
-
-    elif selected_option == '콘텐츠 기반 필터링':
-        recommendations = recommend_random_products()
-        st.session_state['recommendations'] = recommendations
-
-    elif selected_option == '하이브리드 추천 시스템':
-        recommendations = recommend_random_products()
-        st.session_state['recommendations'] = recommendations
-
-    elif selected_option == '잠재 요인 협업 필터링':
-        recommendations = recommend_random_products()
-        st.session_state['recommendations'] = recommendations
+    # 선택된 모델이 2개 미만인 경우 경고 메시지 표시
+    if len(selected_models) < 2:
+        st.warning("최소 2개 이상의 추천시스템을 선택하세요.")
     else:
-        recommendations = []
-    
-    # 추천 결과 출력
-    st.write("### 추천 상품 목록:")
-    if len(recommendations) > 0:
-        for item in recommendations:
-            st.write(f"- {item}")
-    else:
-        st.write("추천 결과가 없습니다.")
+        st.write(definitions['앙상블 추천시스템'])
+        image_path = f"{DATA_PATH}{image_names['앙상블 추천시스템']}.png"
+        st.image(image_path)
+        
+        # 추천 버튼이 나타나고 클릭 시 추천 진행
+        if st.button("추천받기"):
+            recommendations = recommend_random_products()
+            st.session_state['recommendations'] = recommendations
+            # 추천 결과 출력
+            st.write("### 추천 상품 목록:")
+            for item in recommendations:
+                st.write(f"- {item}")
 
-
+else:
+    # 추천 버튼 클릭 시 동작 (앙상블 외의 다른 추천시스템)
+    if st.button("😊 추천받기"):
+        st.markdown(""" **생성형 AI 기반 추가 정보를 원하시면 아래 :blue[챗봇]을 클릭해주세요.** """)
+        
+        # 추천 시스템에 따라 추천 처리
+        if selected_option in definitions:
+            st.write(definitions[selected_option])
+            image_path = f"{DATA_PATH}{image_names[selected_option]}.png"
+            st.image(image_path)
+            recommendations = recommend_random_products()
+            st.session_state['recommendations'] = recommendations
+        else:
+            recommendations = []
+        
+        # 추천 결과 출력
+        st.write("### 추천 상품 목록:")
+        if len(recommendations) > 0:
+            for item in recommendations:
+                st.write(f"- {item}")
+        else:
+            st.write("추천 결과가 없습니다.")
 
 # 페이지 전환 버튼 스타일 설정
 st.markdown(
     """
     <style>
     .stButton > button {
-        background-color: #A7FFEB;
+        background-color: #FED556;
+        color: #000000; /* 텍스트 색상 */
         width: 100%;
         display: inline-block;
         margin: 0;
@@ -436,13 +464,13 @@ st.markdown(
 
 # 페이지 전환 함수 정의
 def page1():
-    want_to_B2C_Chatbot = st.button("B2C 간편식 추천 챗봇")
+    want_to_B2C_Chatbot = st.button("🛒 B2C 간편식 추천 챗봇")
     if want_to_B2C_Chatbot:
         st.session_state.type_of_case = "B2C_Chatbot"
         switch_page("B2C_Chatbot")
         
 def page2():
-    want_to_B2B_Chatbot = st.button("B2B 간편식 대시보드 챗봇")
+    want_to_B2B_Chatbot = st.button("🏢 B2B 간편식 대시보드 챗봇")
     if want_to_B2B_Chatbot:
         st.session_state.type_of_case = "B2B_Chatbot"
         switch_page("B2B_Chatbot")
@@ -454,7 +482,7 @@ def page2():
 #         switch_page("Tableau")
 
 def page3():
-    want_to_Explainable_AI = st.button("Explainable_AI")
+    want_to_Explainable_AI = st.button("📑 Explainable_AI")
     if want_to_Explainable_AI:
         st.session_state.type_of_case = "Explainable_AI"
         switch_page("Explainable_AI")
@@ -542,7 +570,7 @@ selected_api = st.sidebar.selectbox(
     "원하는 추가 정보를 API로 제공해드립니다.",
     ["식품(첨가물)품목제조보고", "조리식품 레시피"]
 )
-if st.sidebar.button("데이터 불러오기"):
+if st.sidebar.button("📝 데이터 불러오기"):
     if selected_api == "식품(첨가물)품목제조보고":
         # API 기본 정보 설정
         API_KEY = st.secrets["secrets"]["FOOD_API"]
@@ -621,3 +649,7 @@ if st.sidebar.button("데이터 불러오기"):
         else:
             st.write(f"API 요청 오류: {response.status_code}")
 
+
+
+st.sidebar.link_button("🚛 유통데이터 서비스 플랫폼", "https://m.retaildb.or.kr/")
+st.sidebar.link_button("🚛 유통상품 표준DB", "https://www.allproductkorea.or.kr/")
