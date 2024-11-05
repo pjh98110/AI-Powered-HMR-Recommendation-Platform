@@ -32,6 +32,7 @@ def gpt_prompt(user_input):
     - 나이: {st.session_state.selected_age}
     - 선호하는 맛: {st.session_state.selected_taste}
     - 알레르기 정보: {st.session_state.selected_allergy}
+    - 간편식을 먹는 시간대: {st.session_state.selected_time}
     - 선택된 가공식품 목록: {st.session_state['recommendations']}
 
     **규칙:**
@@ -62,6 +63,7 @@ def gpt_prompt2(user_input):
     - 나이: {st.session_state.selected_age}
     - 선호하는 맛: {st.session_state.selected_taste}
     - 알레르기 정보: {st.session_state.selected_allergy}
+    - 간편식을 먹는 시간대: {st.session_state.selected_time}
     - 선택된 가공식품 목록: {st.session_state['recommendations']}
 
     **규칙:**
@@ -110,6 +112,7 @@ def gemini_prompt(user_input):
     - 나이: {st.session_state.selected_age}
     - 선호하는 맛: {st.session_state.selected_taste}
     - 알레르기 정보: {st.session_state.selected_allergy}
+    - 간편식을 먹는 시간대: {st.session_state.selected_time}
     - 선택된 가공식품 목록: {st.session_state['recommendations']}
 
     **규칙:**
@@ -141,6 +144,7 @@ def gemini_prompt2(user_input):
     - 나이: {st.session_state.selected_age}
     - 선호하는 맛: {st.session_state.selected_taste}
     - 알레르기 정보: {st.session_state.selected_allergy}
+    - 간편식을 먹는 시간대: {st.session_state.selected_time}
     - 선택된 가공식품 목록: {st.session_state['recommendations']}
 
     **규칙:**
